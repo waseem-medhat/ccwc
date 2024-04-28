@@ -5,14 +5,22 @@ import (
 	"fmt"
 )
 
-func Bytes(r *bufio.Reader) int {
-	nBytes := 0
-	s := bufio.NewScanner(r)
-	s.Split(bufio.ScanBytes)
-	for s.Scan() {
-		nBytes += len(s.Text())
+func Count(r *bufio.Reader, splitFunc bufio.SplitFunc) int {
+	n := 0
+	scanner := bufio.NewScanner(r)
+	scanner.Split(splitFunc)
+	for scanner.Scan() {
+		n++
 	}
-	return nBytes
+	return n
+}
+
+func Bytes(r *bufio.Reader) int {
+	return Count(r, bufio.ScanBytes)
+}
+
+func Lines(r *bufio.Reader) int {
+	return Count(r, bufio.ScanLines)
 }
 
 func FormatOutput(fileName string, ns ...int) string {
@@ -22,8 +30,6 @@ func FormatOutput(fileName string, ns ...int) string {
 			lMax = l
 		}
 	}
-
-	fmt.Println(lMax)
 
 	fmtStr := fmt.Sprintf("%%"+"%v"+"v", lMax)
 	out := ""

@@ -10,12 +10,21 @@ import (
 )
 
 func main() {
-	f, err := os.Open(os.Args[1])
+	f, err := os.Open(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer f.Close()
 
 	r := bufio.NewReader(f)
-	nBytes := counters.Bytes(r)
-	fmt.Println(counters.FormatOutput(f.Name(), nBytes, 3, 4))
+	switch os.Args[1] {
+	case "-c":
+		nBytes := counters.Bytes(r)
+		fmt.Println(counters.FormatOutput(f.Name(), nBytes))
+	case "-l":
+		nLines := counters.Lines(r)
+		fmt.Println(counters.FormatOutput(f.Name(), nLines))
+	default:
+		log.Fatal("malformed input")
+	}
 }
