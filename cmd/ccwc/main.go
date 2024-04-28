@@ -1,71 +1,119 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
-
-	"github.com/wipdev-tech/ccwc/internal/counters"
+	"strings"
+	"unicode/utf8"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("not enough arguments")
-	}
-
-	var fileName string
-	var countBytes, countLines, countWords, countRunes bool
-	if len(os.Args) == 2 {
-		fileName = os.Args[1]
-		countLines = true
-		countWords = true
-		countBytes = true
-	}
-
-	fileName = os.Args[len(os.Args)-1]
-	f, err := os.Open(fileName)
+	stdinStat, err := os.Stdin.Stat()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error checking stdin:", err)
 	}
-	defer f.Close()
 
-	for _, a := range os.Args {
-		switch a {
-		case "-c":
-			countBytes = true
-		case "-l":
-			countLines = true
-		case "-w":
-			countWords = true
-		case "-m":
-			countRunes = true
+	fromStdin := stdinStat.Mode()&os.ModeNamedPipe == os.ModeNamedPipe
+
+	var file *os.File
+	var args []string
+	var fileName string
+
+	if fromStdin {
+		file = os.Stdin
+		if len(os.Args) > 1 {
+			args = os.Args[1:]
+		}
+	} else if len(os.Args) < 2 {
+		log.Fatal("no arguments")
+	} else {
+		fileName = os.Args[len(os.Args)-1]
+		args = os.Args[1 : len(os.Args)-1]
+
+		file, err = os.Open(fileName)
+		if err != nil {
+			log.Fatal("error opening file:", err)
 		}
 	}
 
-	r := bufio.NewReader(f)
-
-	results := []int{}
-
-	if countLines {
-		results = append(results, counters.Lines(r))
-		f.Seek(0, 0)
+	var printBytes, printRunes, printWords, printLines bool
+	for _, a := range args {
+		switch a {
+		case "-c":
+			printBytes = true
+		case "-l":
+			printLines = true
+		case "-w":
+			printWords = true
+		case "-m":
+			printRunes = true
+		default:
+			log.Fatal("malformed input")
+		}
 	}
 
-	if countWords {
-		results = append(results, counters.Words(r))
-		f.Seek(0, 0)
+	if len(args) == 0 {
+		printBytes = true
+		printLines = true
+		printWords = true
 	}
 
-	if countBytes {
-		results = append(results, counters.Bytes(r))
-		f.Seek(0, 0)
+	nBytes, nRunes, nWords, nLines := count(file)
+	var results []int
+
+	if printLines {
+		results = append(results, nLines)
 	}
 
-	if countRunes {
-		results = append(results, counters.Runes(r))
-		f.Seek(0, 0)
+	if printWords {
+		results = append(results, nWords)
 	}
 
-	fmt.Println(counters.FormatOutput(f.Name(), results...))
+	if printBytes {
+		results = append(results, nBytes)
+	}
+
+	if printRunes {
+		results = append(results, nRunes)
+	}
+
+	fmt.Println(format(fileName, results...))
+}
+
+func count(file *os.File) (int, int, int, int) {
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	nBytes := len(bytes)
+	nRunes := utf8.RuneCount(bytes)
+	nWords := len(strings.Fields(string(bytes)))
+	nLines := strings.Count(string(bytes), "\n")
+
+	return nBytes, nRunes, nWords, nLines
+}
+
+func format(fileName string, ns ...int) string {
+	lMax := len(fileName)
+	for _, n := range ns {
+		if l := len(fmt.Sprint(n)); l > lMax {
+			lMax = l
+		}
+	}
+
+	fmtStr := fmt.Sprintf("%%"+"%v"+"v", lMax)
+	out := ""
+	for _, n := range ns {
+		if len(fmt.Sprint(n)) == lMax {
+			out += " "
+		}
+		out += fmt.Sprintf(fmtStr, n)
+	}
+
+	out += " "
+	out += fmt.Sprintf(fmtStr, fileName)
+	return out
 }
