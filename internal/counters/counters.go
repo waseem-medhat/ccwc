@@ -27,6 +27,10 @@ func Words(r *bufio.Reader) int {
 	return count(r, bufio.ScanWords)
 }
 
+func Runes(r *bufio.Reader) int {
+	return count(r, bufio.ScanRunes)
+}
+
 func FormatOutput(fileName string, ns ...int) string {
 	lMax := len(fileName)
 	for _, n := range ns {

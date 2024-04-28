@@ -27,6 +27,9 @@ func main() {
 	case "-w":
 		nWords := counters.Words(r)
 		fmt.Println(counters.FormatOutput(f.Name(), nWords))
+	case "-m":
+		nRunes := counters.Runes(r)
+		fmt.Println(counters.FormatOutput(f.Name(), nRunes))
 	default:
 		log.Fatal("malformed input")
 	}

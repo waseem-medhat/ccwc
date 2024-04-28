@@ -56,6 +56,22 @@ func TestCountWords(t *testing.T) {
 	}
 }
 
+func TestCountRunes(t *testing.T) {
+	f, err := os.Open("test.txt")
+	if err != nil {
+		t.Fatal("err opening test file:", err)
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	got := counters.Runes(r)
+	exp := 339292
+
+	if exp != got {
+		t.Fatalf("line count failed: expected %v, got %v", exp, got)
+	}
+}
+
 func TestFormatOutput(t *testing.T) {
 	got := counters.FormatOutput("test.txt", 342190)
 	exp := "  342190 test.txt"
