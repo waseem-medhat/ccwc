@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func Count(r *bufio.Reader, splitFunc bufio.SplitFunc) int {
+func count(r *bufio.Reader, splitFunc bufio.SplitFunc) int {
 	n := 0
 	scanner := bufio.NewScanner(r)
 	scanner.Split(splitFunc)
@@ -16,11 +16,15 @@ func Count(r *bufio.Reader, splitFunc bufio.SplitFunc) int {
 }
 
 func Bytes(r *bufio.Reader) int {
-	return Count(r, bufio.ScanBytes)
+	return count(r, bufio.ScanBytes)
 }
 
 func Lines(r *bufio.Reader) int {
-	return Count(r, bufio.ScanLines)
+	return count(r, bufio.ScanLines)
+}
+
+func Words(r *bufio.Reader) int {
+	return count(r, bufio.ScanWords)
 }
 
 func FormatOutput(fileName string, ns ...int) string {
