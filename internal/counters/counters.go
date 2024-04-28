@@ -42,10 +42,13 @@ func FormatOutput(fileName string, ns ...int) string {
 	fmtStr := fmt.Sprintf("%%"+"%v"+"v", lMax)
 	out := ""
 	for _, n := range ns {
+		if len(fmt.Sprint(n)) == lMax {
+			out += " "
+		}
 		out += fmt.Sprintf(fmtStr, n)
-		out += " "
 	}
 
+	out += " "
 	out += fmt.Sprintf(fmtStr, fileName)
 	return out
 }

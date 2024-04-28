@@ -10,27 +10,62 @@ import (
 )
 
 func main() {
-	f, err := os.Open(os.Args[2])
+	if len(os.Args) < 2 {
+		log.Fatal("not enough arguments")
+	}
+
+	var fileName string
+	var countBytes, countLines, countWords, countRunes bool
+	if len(os.Args) == 2 {
+		fileName = os.Args[1]
+		countLines = true
+		countWords = true
+		countBytes = true
+	}
+
+	fileName = os.Args[len(os.Args)-1]
+	f, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer f.Close()
 
-	r := bufio.NewReader(f)
-	switch os.Args[1] {
-	case "-c":
-		nBytes := counters.Bytes(r)
-		fmt.Println(counters.FormatOutput(f.Name(), nBytes))
-	case "-l":
-		nLines := counters.Lines(r)
-		fmt.Println(counters.FormatOutput(f.Name(), nLines))
-	case "-w":
-		nWords := counters.Words(r)
-		fmt.Println(counters.FormatOutput(f.Name(), nWords))
-	case "-m":
-		nRunes := counters.Runes(r)
-		fmt.Println(counters.FormatOutput(f.Name(), nRunes))
-	default:
-		log.Fatal("malformed input")
+	for _, a := range os.Args {
+		switch a {
+		case "-c":
+			countBytes = true
+		case "-l":
+			countLines = true
+		case "-w":
+			countWords = true
+		case "-m":
+			countRunes = true
+		}
 	}
+
+	r := bufio.NewReader(f)
+
+	results := []int{}
+
+	if countLines {
+		results = append(results, counters.Lines(r))
+		f.Seek(0, 0)
+	}
+
+	if countWords {
+		results = append(results, counters.Words(r))
+		f.Seek(0, 0)
+	}
+
+	if countBytes {
+		results = append(results, counters.Bytes(r))
+		f.Seek(0, 0)
+	}
+
+	if countRunes {
+		results = append(results, counters.Runes(r))
+		f.Seek(0, 0)
+	}
+
+	fmt.Println(counters.FormatOutput(f.Name(), results...))
 }

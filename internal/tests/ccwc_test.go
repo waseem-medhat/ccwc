@@ -23,7 +23,6 @@ func TestCountBytes(t *testing.T) {
 		t.Fatalf("byte count failed: expected %v, got %v", exp, got)
 	}
 }
-
 func TestCountLines(t *testing.T) {
 	f, err := os.Open("test.txt")
 	if err != nil {
@@ -82,6 +81,13 @@ func TestFormatOutput(t *testing.T) {
 
 	got = counters.FormatOutput("test.txt", 7145)
 	exp = "    7145 test.txt"
+
+	if exp != got {
+		t.Fatalf("expected '%v', got '%v'", exp, got)
+	}
+
+	got = counters.FormatOutput("test.txt", 7145, 58164, 342190)
+	exp = "    7145   58164  342190 test.txt"
 
 	if exp != got {
 		t.Fatalf("expected '%v', got '%v'", exp, got)
