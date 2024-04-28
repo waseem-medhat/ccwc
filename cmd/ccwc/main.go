@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 
@@ -15,5 +16,6 @@ func main() {
 	}
 
 	r := bufio.NewReader(f)
-	counters.Bytes(r)
+	nBytes := counters.Bytes(r)
+	fmt.Println(counters.FormatOutput(f.Name(), nBytes, 3, 4))
 }
